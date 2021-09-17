@@ -1,0 +1,170 @@
+<html><head>
+    <link rel="stylesheet" type="text/css" href="/assets/css/sfx_s3.min.css">
+    <script src="/js/jquery-3.3.1.min.js"></script>
+    <script src="/js/jquery-watch.min.js"></script>
+    <style>
+		body { 
+			background-color: #FFF;
+			overflow:hidden;
+		}
+	</style>
+</head>
+<body class="desktop">
+
+<iframe id="post-to-verifone" src="/postCardDetails.html" hidden="" style="margin-bottom : 0"></iframe>
+
+<div id="innerForm">
+    <form id="form-submit-card-details-to-verifone">
+        <div id="general-data"> <!--style="margin-left: 10%!important;"-->
+            <div class="row id-card-name    ">
+                <div class="lg-20 lg-offset-2 md-22 sm-24 cols">
+                    <div class="row fm-pad">
+                        <div class="lg-8 md-12 md-offset-1 sm-24 cols">
+                            <label for="new-card-name">Name on card <span class="req">*</span></label>
+                            <input type="text" class="fm-input" maxlength="40" name="name-on-card" placeholder="Enter name on card" id="new-card-name" required="" spellcheck="false" autocomplete="off" data-alt-name="your name as it is written on your card">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row id-card-number  ">
+                <div class="lg-20 lg-offset-2 md-22 sm-24 cols">
+                    <div class="row fm-pad">
+                        <div class="lg-8 md-12 md-offset-1 sm-24 cols">
+                            <label for="new-card-number">Card number <span class="req">*</span></label>
+                            <p class="fm-item__message">(The long number on the front of the card)</p>
+                            <input type="tel" class="fm-input" maxlength="25" pattern="[0-9]*" name="new-card-number" placeholder="Enter card number" id="new-card-number" required="" spellcheck="false" autocomplete="off" data-alt-name="card number">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row id-expiry-date">
+                <div class="lg-20 lg-offset-2 md-22 md-offset-1 sm-24 cols fm--date-fields">
+                    <div class="row fm-pad--date-label">
+                        <label for="new-card-month">Expiry date <span class="req">*</span></label>
+                        <!-- <label for="new-card-year" class=" ">Expiry year</label> -->
+                    </div>
+                    <div class="row fm-pad--date-field">
+                        <div class="lg-4 md-4 sm-12 cols">
+                            <select id="new-card-month" class="fm-select fm-input" name="expirymonth">
+                                <option value="" selected="">Month</option>
+                                <option value="01">01</option>
+                                <option value="02">02</option>
+                                <option value="03">03</option>
+                                <option value="04">04</option>
+                                <option value="05">05</option>
+                                <option value="06">06</option>
+                                <option value="07">07</option>
+                                <option value="08">08</option>
+                                <option value="09">09</option>
+                                <option value="10">10</option>
+                                <option value="11">11</option>
+                                <option value="12">12</option>
+                            </select>
+                        </div>
+                        <div class="lg-4 md-4 sm-12 cols">
+                            <select id="new-card-year" class="fm-select fm-input" name="expiryyear">
+                                <option value="" selected="">Year</option>
+                            <option value="21">2021</option><option value="22">2022</option><option value="23">2023</option><option value="24">2024</option><option value="25">2025</option><option value="26">2026</option><option value="27">2027</option><option value="28">2028</option><option value="29">2029</option><option value="30">2030</option><option value="31">2031</option><option value="32">2032</option></select>
+                        </div>
+                        <input id="monthYear" value="" type="hidden">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+
+<script src="/js/validation.js"></script>
+<script>
+		initYearsSelection();
+		var params = window.location.search.substr(1).split(',');
+		var cardType = params[0];
+		$(document.body).attr("class", params[1]);
+        registerFormValidationsForCard(cardType);
+        clearValidation();
+		window.addEventListener("message", receiveMessage, false);
+		window.addEventListener("load", resizeHandle, false);
+
+		var frameHeight = $("#form-submit-card-details-to-verifone").height() + 5;
+
+		$('#innerForm').watch( {
+			properties: "prop_innerHTML",
+			watchChildren: true,
+			callback: resizeHandle
+		});
+
+		function receiveMessage(event)
+		{
+			var msg = {}
+			if(event.data.type === "vanguardSuccess" || event.data.type === "noSessionId") {
+				parent.postMessage(event.data, "*");
+			}else if(event.data.type === "formValidation") {
+				msg.type = "formValidation"
+				msg.isFormValid = validateSubmit();
+				parent.postMessage(msg, "*");
+			}else if(event.data.type === "resize") {
+			    $(document.body).removeAttr("class");
+                $(document.body).attr("class", event.data.payload);
+			}else if(event.data.type === "submit"){
+                var cardDetails = {}
+				if(validateSubmit(event.data.payload.cardType)) {
+                    var frame = document.getElementById("post-to-verifone");
+					cardDetails = event.data.payload;
+					cardDetails.cardholdername = document.getElementById("new-card-name").value;
+					cardDetails.pan = document.getElementById("new-card-number").value;
+					cardDetails.expirymonth = document.getElementById("new-card-month").value;
+					cardDetails.expiryyear = document.getElementById("new-card-year").value;
+
+					frame.contentWindow.postMessage(cardDetails, "*");
+					msg.type = "setTimer";
+					parent.postMessage(msg, "*");
+				}else {
+					msg.type = "formValidationFailed";
+					parent.postMessage(msg, "*");
+				}
+			}
+		}
+
+		function initYearsSelection() {
+			var currentYear = new Date().getFullYear();
+			var newCardYear = document.getElementById("new-card-year");
+			
+		
+			for (var i = 0; i < 12; i++) {
+				var textYear = currentYear+i;
+				var option = document.createElement("option"); 
+				option.appendChild(document.createTextNode(textYear));
+				option.setAttribute("value", textYear.toString().substr(2,2));
+				newCardYear.appendChild(option);
+			}
+		}
+
+		function resizeHandle() {
+			var body = document.body,
+			html = document.documentElement;
+
+			var height = $("#form-submit-card-details-to-verifone").height() + 5;
+			var msg = {};
+			msg.type = "resize";
+			msg.value = height;
+			parent.postMessage(msg, "*");
+		
+		}	
+		
+		function sentNewCVVToParent() {
+			var cvvObject = {}
+			cvvObject.type = "cvv";
+			cvvObject.value = document.getElementById('cvvNumber').value;
+			parent.postMessage(cvvObject, "*");
+		}
+
+		var msg = {};
+		msg.type = "formLoaded";
+		msg.cardType = cardType;
+		msg.innerHight = frameHeight;
+
+		parent.postMessage(msg, "*");
+
+	</script>
+</body></html>

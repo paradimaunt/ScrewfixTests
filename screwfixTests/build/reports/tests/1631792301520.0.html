@@ -1,0 +1,71 @@
+<html class=" mdnzr-js mdnzr-svg mdnzr-inlinesvg mdnzr-js mdnzr-svg mdnzr-inlinesvg"><head></head>
+<body>
+<form id="cardDetails" method="POST" action="https://vg-a.cxmlpg.com/vanguard.aspx">
+	<input type="text" id="card_type" name="card_type">
+	<input type="text" id="address1" name="address1">
+	<input type="text" id="address2" name="address2">
+	<input type="text" id="address3" name="address3">
+	<input type="text" id="town" name="town">
+	<input type="text" id="county" name="county">
+	<input type="text" id="country" name="country">
+	<input type="text" id="postcode" name="postcode">
+	<input type="text" id="sessionguid" name="sessionguid">
+	<input type="text" id="sessionpasscode" name="sessionpasscode">
+	<input type="text" id="processingdb" name="processingdb">
+
+	<input type="text" id="cardholdername" name="cardholdername">
+	<input type="text" id="pan" name="pan">
+	<input type="text" id="startmonth" name="startmonth">
+	<input type="text" id="startyear" name="startyear">
+	<input type="text" id="expirymonth" name="expirymonth">
+	<input type="text" id="expiryyear" name="expiryyear">
+	<input type="text" id="issuenumber" name="issuenumber">
+	<input type="text" id="csc" name="csc">
+</form>
+<script>
+
+		        window.addEventListener("message", postToVerifone, false);
+
+                function postToVerifone(event) {
+                    var cardDetails = event.data;
+                    document.getElementById('cardholdername').value = getEmptyStringIfUndefined(cardDetails.cardholdername);
+                    document.getElementById('pan').value = getEmptyStringIfUndefined(cardDetails.pan.replace(/\s/g,''));
+                    document.getElementById('expirymonth').value = getEmptyStringIfUndefined(cardDetails.expirymonth);
+                    document.getElementById('expiryyear').value = getEmptyStringIfUndefined(cardDetails.expiryyear);
+                    document.getElementById('startmonth').value = getEmptyStringIfUndefined(cardDetails.startmonth);
+                    document.getElementById('startyear').value = getEmptyStringIfUndefined(cardDetails.startyear);
+                    document.getElementById('issuenumber').value = getEmptyStringIfUndefined(cardDetails.issuenumber);
+                    document.getElementById('issuenumber').value = getEmptyStringIfUndefined(cardDetails.issuenumber);
+                    document.getElementById('csc').value = getEmptyStringIfUndefined(cardDetails.cv2);
+
+                    document.getElementById('card_type').value = getEmptyStringIfUndefined(cardDetails.cardType);
+                    document.getElementById('address1').value = getEmptyStringIfUndefined(cardDetails.address1);
+                    document.getElementById('address2').value = getEmptyStringIfUndefined(cardDetails.address2);
+                    document.getElementById('address3').value = getEmptyStringIfUndefined(cardDetails.address3);
+                    document.getElementById('town').value = getEmptyStringIfUndefined(cardDetails.town);
+                    document.getElementById('country').value = "UK";
+                    document.getElementById('county').value = getEmptyStringIfUndefined(cardDetails.county);
+                    document.getElementById('postcode').value = getEmptyStringIfUndefined(cardDetails.postcode);
+
+                    document.getElementById('sessionguid').value = getEmptyStringIfUndefined(cardDetails.sessionguid);
+                    document.getElementById('sessionpasscode').value = getEmptyStringIfUndefined(cardDetails.sessionpasscode);
+                    document.getElementById('processingdb').value = getEmptyStringIfUndefined(cardDetails.processingdb);
+
+                    sessionId = document.getElementById('sessionguid').value;
+
+                    if(!sessionId){
+                        msg = {}
+                        msg.type = "noSessionId";
+                        parent.postMessage(msg, "*");
+                    } else {
+                        document.getElementById('cardDetails').submit();
+                    }
+                }
+
+                function getEmptyStringIfUndefined(value) {
+                    return value ? value : "";
+                }
+            </script>
+		
+	
+</body></html>
